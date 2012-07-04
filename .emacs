@@ -11,12 +11,8 @@
              '("melpa" . "http://melpa.milkbox.net/packages/"))
 (package-initialize)
 
-
-;; startup load
-(find-file "~/org/mylife.org")
-
+;;;; org setup
 (setq org-directory "~/org")
-
 (setq org-mobile-files '("~/org/todo.org"
                          "~/org/privat.org"
                          "~/org/arbeit.org"))
@@ -42,15 +38,6 @@
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
 
-(defun dos2unix (buffer)
-  "Automate M-% C-q C-m RET C-q C-j RET"
-  (interactive "*b")
-  (save-excursion
-    (goto-char (point-min))
-    (while (search-forward (string ?\C-m) nil t)
-      (replace-match (string ?\C-j) nil t))))
-
-
 (setenv "PRINTER" "PDFCreator")
     (cond ((eq system-type 'windows-nt)
        (setq ps-printer-name "PDFCreator")
@@ -66,13 +53,27 @@
 (load-theme 'ir_black t)
 
 
-
-;; Check if we are running on windows
+;; check os
 (defvar mswindows (string-match "windows" (symbol-name system-type)))
+(defvar linux (string-match "linux" (symbol-name system-type)))
 
-;; global font
-;;(if (mswindows)
-;;    (set-default-font "-*-Consolas-normal-r-*-*-20-*-*-*-c-*-iso8859-1"))
+;; Set font only on windows
+(if mswindows
+    (progn
+      ;; global font
+      (set-default-font "-*-Consolas-normal-r-*-*-20-*-*-*-c-*-iso8859-1")
+      (find-file "~/org/mylife.org")))
+
+
+;; quick notes app
+(require 'deft)
+(setq deft-directory "C:/Users/jcyriac/Dropbox/Notes")
+(setq deft-extension "org")
+(setq deft-text-mode 'org-mode)
+(global-set-key [f12] 'deft)
+(global-set-key "\C-cn" 'deft)
+
+
   
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
