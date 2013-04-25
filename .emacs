@@ -1,8 +1,11 @@
 ;; emacs config file for Emacs24
 
+;; tramp
+(cond  ((eq window-system 'w32)
+      (setq tramp-default-method "scpx"))
+      (t
+      (setq tramp-default-method "scpc")))
 
-(if (file-directory-p "c:/cygwin/bin")
-    (add-to-list 'exec-path "c:/cygwin/bin"))
 
 ;;;; package stuff, adding more repos
 (require 'package)
@@ -16,18 +19,48 @@
 (menu-bar-mode 1)
 (tool-bar-mode 0)
 
-(line-number-mode 1)
-(column-number-mode 1)
+;; backup settings
+(setq backup-directory-alist '(("." . "~/.emacs.d/autosaves")))
+(make-directory "~/.emacs.d/autosaves/" t)
+
 
 ;; font size
 (global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
 (global-set-key (kbd "<C-wheel-up>") 'text-scale-increase)
 
 
-;; smex - Enchanged M-x mode, convenient interface to recent and most frequently used commands
+;; better undo 
+(require 'undo-tree)
+(global-undo-tree-mode)
+
+;; ace-jump
+(require 'ace-jump-mode)
+(define-key global-map (kbd "C-SPC") 'ace-jump-mode)
+
+;; smex
 (require 'smex)
 (smex-initialize)
 (global-set-key (kbd "M-x") 'smex)
+
+
+;; mulit web for html with inline js
+;; (require 'multi-web-mode)
+;; (setq mweb-default-major-mode 'html-mode)
+;; (setq mweb-tags 
+;;   '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
+;;     (js2-mode  "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
+;;     (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
+;; (setq mweb-filename-extensions '("php" "htm" "html" "ctp" "phtml" "php4" "php5"))
+;; (multi-web-global-mode 1)
+
+;; another web mode
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+
+
+;; emacs understands cygwin paths
+(require 'cygwin-mount)
+(cygwin-mount-activate)
 
 ;; no more double escaping in regex-builder
 (setq reb-re-syntax 'string)
@@ -64,7 +97,11 @@
 (setq org-startup-indented t)
 
 ;; check os
-(defvar mswindows (string-match "windows" (symbol-name system-type)))
+(defvar mswindows (or 
+   (string-match "cygwin" (symbol-name system-type)
+   (string-match "windows" (symbol-name system-type)))))
+
+
 (defvar linux (string-match "linux" (symbol-name system-type)))
 
 ;; cua mode
@@ -88,7 +125,7 @@
 ;;(find-file "~/org/todo.org")
 
 
-;; Set consolas font only on windows
+;; Set font only on windows
 (if mswindows
     (progn
       ;; global font
@@ -98,7 +135,7 @@
 
 ;; quick notes app
 (require 'deft)
-(setq deft-directory "c:/data/org")
+(setq deft-directory "/cygdrive/c/data/org")
 (setq deft-extension "org")
 (setq deft-text-mode 'org-mode)
 (setq deft-use-filename-as-title t)
@@ -110,7 +147,7 @@
     (cond ((eq system-type 'windows-nt)
        (setq ps-printer-name "PDFCreator")
        (setq ps-printer-name-option "-d")
-       (setq ps-lpr-command "c:/data/cygwin/bin/lpr")))
+       (setq ps-lpr-command "/cygdrive/c/data/cygwin/bin/lpr")))
 
 
 (setq org-directory "~/org/")
@@ -119,6 +156,14 @@
 
 
 (custom-set-variables
+ ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(js3-lazy-commas t)
+ '(js3-lazy-operators t)
+ '(js3-expr-indent-offset 2)
+ '(js3-paren-indent-offset 2)
+ '(js3-square-indent-offset 2)
+ '(js3-curly-indent-offset 2)
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
@@ -133,4 +178,55 @@
 
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+
+
+(defun move-line-up ()
+  "Move up the current line."
+  (interactive)
+  (transpose-lines 1)
+  (forward-line -2)
+  (indent-according-to-mode))
+
+(defun move-line-down ()
+  "Move down the current line."
+  (interactive)
+  (forward-line 1)
+  (transpose-lines 1)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+(global-set-key [(control shift up)] 'move-line-up)
+(global-set-key [(control shift down)] 'move-line-down)
+
+
+;;;; --- ui stuff ---- ;;;
+(blink-cursor-mode -1)
+
+
+;; nice scrolling
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+
+
+;; mode line settings
+(line-number-mode t)
+(column-number-mode t)
+(size-indication-mode t)
+
+
+;; linum mode and formatting of the left column
+(global-linum-mode 1)
+(setq linum-format " %d")
+
+
+(global-hl-line-mode +1)
+
+
+;; more useful frame title, that show either a file or a
+;; buffer name (if the buffer isn't visiting a file)
+(setq frame-title-format
+      '("" invocation-name " - " (:eval (if (buffer-file-name)
+					    (abbreviate-file-name (buffer-file-name))
+					  "%b"))))
 
